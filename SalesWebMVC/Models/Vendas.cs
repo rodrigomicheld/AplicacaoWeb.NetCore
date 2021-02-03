@@ -19,7 +19,7 @@ namespace SalesWebMVC.Models
         {
             Id = id;
             Data = data;
-            valor = valor;
+            Valor = valor;
             Status = status;
             Vendedor = vendedor;
         }
