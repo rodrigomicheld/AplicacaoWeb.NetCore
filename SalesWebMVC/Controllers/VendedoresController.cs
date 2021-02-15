@@ -38,5 +38,27 @@ namespace SalesWebMVC.Controllers
             _vendedorService.InserirVendedor(vendedor);
             return RedirectToAction(nameof(Index));
         }
+
+        public IActionResult Apagar(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var obj = _vendedorService.FindbyId(id.Value);
+            if (obj == null)
+            {
+                return NotFound();
+            }
+            return View(obj);
+        }
+
+        [HttpPost] //dizer que o metodo é um post
+        [ValidateAntiForgeryToken] //contra ameaças
+        public IActionResult Apagar (int id)
+        {
+            _vendedorService.DeletarVendedor(id);
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
