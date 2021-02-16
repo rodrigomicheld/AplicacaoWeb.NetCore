@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SalesWebMVC.Models;
 using SalesWebMVC.Models.ViewModels;
 using SalesWebMVC.Services;
+using SalesWebMVC.Services.Exceptions;
 
 namespace SalesWebMVC.Controllers
 {
@@ -14,7 +17,7 @@ namespace SalesWebMVC.Controllers
         private readonly VendedorService _vendedorService;
         private readonly DepartamentoService _departamentoService;
 
-        public VendedoresController(VendedorService vendedorService, DepartamentoService departamentoService)
+        public VendedoresController(VendedorService vendedorService,DepartamentoService departamentoService)
         {
             _vendedorService = vendedorService;
             _departamentoService = departamentoService;
@@ -41,12 +44,12 @@ namespace SalesWebMVC.Controllers
 
         public IActionResult Apagar(int? id)
         {
-            if (id == null)
+            if(id == null)
             {
                 return NotFound();
             }
             var obj = _vendedorService.FindbyId(id.Value);
-            if (obj == null)
+            if(obj == null)
             {
                 return NotFound();
             }
@@ -55,7 +58,7 @@ namespace SalesWebMVC.Controllers
 
         [HttpPost] //dizer que o metodo é um post
         [ValidateAntiForgeryToken] //contra ameaças
-        public IActionResult Apagar (int id)
+        public IActionResult Apagar(int id)
         {
             _vendedorService.DeletarVendedor(id);
             return RedirectToAction(nameof(Index));
@@ -72,6 +75,44 @@ namespace SalesWebMVC.Controllers
                 return NotFound();
             }
             return View(obj);
+        }
+        public IActionResult Editar(int? id)
+        {
+            if(id == null)
+            {
+                return NotFound();
+            }
+            var obj = _vendedorService.FindbyId(id.Value);
+            if(obj == null)
+            {
+                return NotFound();
+            }
+            List<Departamento> departamentos = _departamentoService.FindAll();
+            VendedorFormViewModel viewModel = new VendedorFormViewModel { Vendedor = obj,Departamentos = departamentos };
+            return View(viewModel);
+        }
+
+        [HttpPost] //dizer que o metodo é um post
+        [ValidateAntiForgeryToken] //contra ameaças
+        public IActionResult Editar(int id,Vendedor vendedor)
+        {
+            if(id != vendedor.Id)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                _vendedorService.AtualizarVendedor(vendedor);
+                return RedirectToAction(nameof(Index));
+            }
+            catch(NotFoundException e)
+            {
+                return NotFound();
+            }
+            catch(DBConcurrencyException)
+            {
+                return BadRequest();
+            }
         }
 
     }
