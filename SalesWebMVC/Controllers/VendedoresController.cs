@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -46,12 +47,12 @@ namespace SalesWebMVC.Controllers
         {
             if(id == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error),new { mensagem = "Id não foi fornecido" });
             }
             var obj = _vendedorService.FindbyId(id.Value);
             if(obj == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error),new { mensagem = "Id não encontrado" });
             }
             return View(obj);
         }
@@ -67,12 +68,12 @@ namespace SalesWebMVC.Controllers
         {
             if(id == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error),new { mensagem = "Id não fornecido" });
             }
             var obj = _vendedorService.FindbyId(id.Value);
             if(obj == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error),new { mensagem = "Id não encontrado" });
             }
             return View(obj);
         }
@@ -80,12 +81,12 @@ namespace SalesWebMVC.Controllers
         {
             if(id == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error),new { mensagem = "Id não fornecido" });
             }
             var obj = _vendedorService.FindbyId(id.Value);
             if(obj == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error),new { mensagem = "Id não encontrado" });
             }
             List<Departamento> departamentos = _departamentoService.FindAll();
             VendedorFormViewModel viewModel = new VendedorFormViewModel { Vendedor = obj,Departamentos = departamentos };
@@ -98,7 +99,7 @@ namespace SalesWebMVC.Controllers
         {
             if(id != vendedor.Id)
             {
-                return BadRequest();
+                return RedirectToAction(nameof(Error),new { mensagem = "Id do vendedor inválido" });
             }
             try
             {
@@ -107,12 +108,23 @@ namespace SalesWebMVC.Controllers
             }
             catch(NotFoundException e)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error),new { mensagem = e.Message });
             }
-            catch(DBConcurrencyException)
+            catch(DBConcurrencyException e)
             {
-                return BadRequest();
+                return RedirectToAction(nameof(Error),new { mensagem = e.Message });
             }
+        }
+
+        public IActionResult Error(string mensagem)
+        {
+            var viewModel = new ErrorViewModel
+            {
+                Mensagem = mensagem,
+                // Framework pega o id interno da requisição 
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            };
+            return View(viewModel);
         }
 
     }
